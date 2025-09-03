@@ -1,5 +1,5 @@
-import { handleParseExpense } from '../../services/aiParsingService';
-import { logger } from '../../services/loggerService';
+import { handleParseExpense } from '../../../services/aiParsingService';
+import { logger } from '../../../services/loggerService';
 
 export default async (req: Request) => {
   if (req.method !== 'POST') {
