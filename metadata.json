@@ -1,0 +1,8 @@
+{
+  "name": "TestBuildAIStudio",
+  "description": "An intelligent group expense tracking application that simplifies logging and calculating shared costs. Use AI to add expenses from voice or receipts, manage group balances, and settle up with ease.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}
