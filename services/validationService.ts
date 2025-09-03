@@ -171,7 +171,9 @@ export const expenseFormSchema = z
 export const groupCreationSchema = z.object({
   name: groupNameSchema,
   currency: currencyCodeSchema,
-  memberIds: z.array(z.string()).min(2, 'Group must have at least 2 members'),
+  memberIds: z
+    .array(z.string())
+    .min(1, 'A group must have at least one member'),
 });
 
 export const userProfileSchema = z.object({
