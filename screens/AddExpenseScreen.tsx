@@ -288,14 +288,14 @@ const AddExpenseScreen: React.FC = () => {
     }
 
     const findUserByName = (name: string): User | undefined => {
-      const lowerCaseName = name.toLowerCase();
+      const lowerCaseName = name.trim().toLowerCase();
       if (
         lowerCaseName === 'you' ||
-        lowerCaseName === currentUser?.name.toLowerCase()
+        (currentUser && lowerCaseName === currentUser.name.trim().toLowerCase())
       ) {
         return currentUser as User;
       }
-      return groupMembers.find((m) => m.name.toLowerCase() === lowerCaseName);
+      return groupMembers.find((m) => m.name.trim().toLowerCase() === lowerCaseName);
     };
 
     if (result.paidBy) {
@@ -490,6 +490,7 @@ const AddExpenseScreen: React.FC = () => {
           groupMembers={groupMembers}
           onResult={handleAiResult}
           disabled={isFormDisabled}
+          existingExpense={existingExpense}
         />
         {isFormDisabled && (
           <p className="mt-2 px-4 text-center text-sm text-gray-500">
