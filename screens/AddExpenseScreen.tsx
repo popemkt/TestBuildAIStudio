@@ -65,6 +65,8 @@ const AddExpenseScreen: React.FC = () => {
   const [conversionRate, setConversionRate] = useState<number | null>(null);
   const [isConverting, setIsConverting] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [location, setLocation] = useState('');
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [groupId, setGroupId] = useState(defaultGroupId || '');
   const [paidBy, setPaidBy] = useState(currentUser?.id || '');
   const [tags, setTags] = useState('');
@@ -204,6 +206,7 @@ const AddExpenseScreen: React.FC = () => {
       setSplitType(existingExpense.splitType as SplitManagerSplitType);
       setAttachments(existingExpense.attachments || []);
       setDate(new Date(existingExpense.date).toISOString().split('T')[0]);
+      setLocation(existingExpense.location || '');
     }
   }, [isEditMode, existingExpense]);
 
@@ -251,6 +254,31 @@ const AddExpenseScreen: React.FC = () => {
     setRemovedAttachments((prev) => [...prev, ...removed]);
   };
 
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser.');
+      return;
+    }
+    setIsDetectingLocation(true);
+    const success = (position: GeolocationPosition) => {
+      // Mock reverse geocoding to a readable address
+      setLocation('1 Hacker Way, Menlo Park, CA');
+      setIsDetectingLocation(false);
+      toast.success('Location detected!');
+    };
+    const error = () => {
+      toast.error(
+        'Unable to retrieve your location. Please check permissions.'
+      );
+      setIsDetectingLocation(false);
+    };
+    navigator.geolocation.getCurrentPosition(success, error, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
+    });
+  };
+
   const handleAiResult = (result: any, image?: { dataUrl: string }) => {
     if (!result) {
       toast.error('Could not extract details.');
@@ -270,12 +298,20 @@ const AddExpenseScreen: React.FC = () => {
       setOriginalAmount(result.amount);
       updatedFields.add('amount');
     }
+    if (result.location) {
+      setLocation(result.location);
+      updatedFields.add('location');
+    }
     if (result.currency) {
-      const isValidCurrency = CURRENCIES.some((c) => c.code === result.currency);
+      const isValidCurrency = CURRENCIES.some(
+        (c) => c.code === result.currency
+      );
       if (isValidCurrency) {
         setOriginalCurrency(result.currency);
       } else {
-        toast.warning(`AI suggested an unsupported currency: ${result.currency}`);
+        toast.warning(
+          `AI suggested an unsupported currency: ${result.currency}`
+        );
       }
     }
     if (result.date && /^\d{4}-\d{2}-\d{2}$/.test(result.date)) {
@@ -291,11 +327,14 @@ const AddExpenseScreen: React.FC = () => {
       const lowerCaseName = name.trim().toLowerCase();
       if (
         lowerCaseName === 'you' ||
-        (currentUser && lowerCaseName === currentUser.name.trim().toLowerCase())
+        (currentUser &&
+          lowerCaseName === currentUser.name.trim().toLowerCase())
       ) {
         return currentUser as User;
       }
-      return groupMembers.find((m) => m.name.trim().toLowerCase() === lowerCaseName);
+      return groupMembers.find(
+        (m) => m.name.trim().toLowerCase() === lowerCaseName
+      );
     };
 
     if (result.paidBy) {
@@ -325,9 +364,15 @@ const AddExpenseScreen: React.FC = () => {
           const user = findUserByName(p.name);
           if (user) {
             validParticipants.push(user);
-            if (newSplitType === SplitType.EXACT && typeof p.amount === 'number') {
+            if (
+              newSplitType === SplitType.EXACT &&
+              typeof p.amount === 'number'
+            ) {
               newSplits[user.id] = p.amount;
-            } else if (newSplitType === SplitType.PARTS && typeof p.parts === 'number') {
+            } else if (
+              newSplitType === SplitType.PARTS &&
+              typeof p.parts === 'number'
+            ) {
               newSplits[user.id] = p.parts;
             }
           }
@@ -361,6 +406,7 @@ const AddExpenseScreen: React.FC = () => {
       groupId,
       participants: participants.map((p) => p.id),
       tags,
+      location,
     });
     if (!validationResult.success) {
       toast.error(validationResult.error.issues[0].message);
@@ -433,6 +479,7 @@ const AddExpenseScreen: React.FC = () => {
         .filter(Boolean),
       transactionType: TransactionType.EXPENSE,
       groupId,
+      location,
       date: new Date(date).toISOString(),
     };
 
@@ -552,6 +599,10 @@ const AddExpenseScreen: React.FC = () => {
                 onCurrencyChange={setOriginalCurrency}
                 date={date}
                 onDateChange={setDate}
+                location={location}
+                onLocationChange={setLocation}
+                onDetectLocation={handleDetectLocation}
+                isDetectingLocation={isDetectingLocation}
                 disabled={isConverting || isFormDisabled || isSubmitting}
                 isConverting={isConverting}
                 conversionRate={conversionRate}

@@ -1,10 +1,9 @@
 import * as functions from 'firebase-functions';
 import * as express from 'express';
 import * as admin from 'firebase-admin';
-import { initializeApp } from 'firebase-admin';
 import handleParseExpense from './api/parse-expense';
 
-initializeApp();
+admin.initializeApp();
 
 const app = express();
 

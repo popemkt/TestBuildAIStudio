@@ -117,6 +117,12 @@ const ExpenseItem: React.FC<ExpenseItemProps> = ({
               </span>
             )}
           </p>
+          {expense.location && (
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+              <ICONS.LOCATION className="h-3 w-3 flex-shrink-0" />
+              <span>{expense.location}</span>
+            </p>
+          )}
           <div className="mt-1 flex flex-wrap gap-1">
             {expense.tags.map((tag) => (
               <Tag key={tag}>{tag}</Tag>

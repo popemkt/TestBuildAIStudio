@@ -12,7 +12,8 @@ const port = 3001;
 // Use body-parser to handle large base64 image strings
 app.use(bodyParser.json({ limit: '10mb' }));
 
-app.post('/api/parse-expense', async (req, res) => {
+// FIX: Added explicit types for req and res to solve overload error.
+app.post('/api/parse-expense', async (req: express.Request, res: express.Response) => {
   try {
     const options = req.body;
     const result = await handleParseExpense(options);

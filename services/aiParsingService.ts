@@ -35,6 +35,11 @@ const getExpenseSchema = (isEditMode: boolean) => ({
       description:
         'The date of the expense in YYYY-MM-DD format. If a date is mentioned, use it. If unsure or no date is mentioned, do not include this field.',
     },
+    location: {
+      type: Type.STRING,
+      description:
+        'The location of the expense, like a store name or address. If unsure, do not include this field.',
+    },
     paidBy: {
       type: Type.STRING,
       description:
@@ -116,7 +121,7 @@ const generatePrompt = (options: ParseExpenseOptions) => {
 
   let prompt = `Parse the provided text and/or image to extract expense details. The members in the group are: ${memberNames}.`;
   if (text) prompt += ` Here is the text provided by the user: "${text}".`;
-  prompt += ` Analyze the information to determine the description, total amount and its currency (as a 3-letter ISO code), date, a suitable category, who paid, and how the bill is split. For example, 'split with Alice' means an EQUAL split between You and Alice. 'Alice owes $10' implies an EXACT split. 'I paid for my part and Bob's' implies a PARTS split where you have 2 parts. The current date is ${
+  prompt += ` Analyze the information to determine the description, total amount and its currency (as a 3-letter ISO code), date, a suitable category, the location (e.g., store name, address), who paid, and how the bill is split. For example, 'split with Alice' means an EQUAL split between You and Alice. 'Alice owes $10' implies an EXACT split. 'I paid for my part and Bob's' implies a PARTS split where you have 2 parts. The current date is ${
     new Date().toISOString().split('T')[0]
   }. Only return fields you are confident about. If split information isn't clear, do not return a 'split' object.`;
   return prompt;

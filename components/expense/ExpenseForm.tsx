@@ -2,6 +2,7 @@ import React from 'react';
 import { CURRENCIES } from '../../constants/currencies';
 import Input from '../common/Input';
 import Spinner from '../common/Spinner';
+import { ICONS } from '../../constants';
 
 interface ExpenseFormProps {
   description: string;
@@ -12,6 +13,10 @@ interface ExpenseFormProps {
   onCurrencyChange: (value: string) => void;
   date: string;
   onDateChange: (value: string) => void;
+  location: string;
+  onLocationChange: (value: string) => void;
+  onDetectLocation: () => void;
+  isDetectingLocation: boolean;
   disabled?: boolean;
   errors?: {
     description?: string;
@@ -34,6 +39,10 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   onCurrencyChange,
   date,
   onDateChange,
+  location,
+  onLocationChange,
+  onDetectLocation,
+  isDetectingLocation,
   disabled = false,
   errors,
   aiFilledFields = new Set(),
@@ -42,11 +51,6 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   convertedAmount,
   masterCurrency,
 }) => {
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value) || 0;
-    onAmountChange(value);
-  };
-
   return (
     <div className="space-y-4">
       <Input
@@ -57,15 +61,45 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         required
         disabled={disabled}
       />
-      <Input
-        label="Date"
-        type="date"
-        value={date}
-        onChange={(e) => onDateChange(e.target.value)}
-        className={aiFilledFields.has('date') ? 'ai-highlight' : ''}
-        required
-        disabled={disabled}
-      />
+
+      <div className="flex items-start gap-2">
+        <div className="relative flex-grow">
+          <Input
+            label="Location (Optional)"
+            id="location"
+            value={location}
+            onChange={(e) => onLocationChange(e.target.value)}
+            className={`${
+              aiFilledFields.has('location') ? 'ai-highlight' : ''
+            } pr-12`}
+            disabled={disabled}
+            placeholder="e.g. Starbucks, 5th Ave"
+          />
+          <button
+            type="button"
+            onClick={onDetectLocation}
+            disabled={disabled || isDetectingLocation}
+            className="absolute right-2 top-8 flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-slate-700"
+            aria-label="Detect current location"
+          >
+            {isDetectingLocation ? (
+              <Spinner size="w-5 h-5" />
+            ) : (
+              <ICONS.LOCATION className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+        <Input
+          label="Date"
+          type="date"
+          value={date}
+          onChange={(e) => onDateChange(e.target.value)}
+          className={aiFilledFields.has('date') ? 'ai-highlight' : ''}
+          containerClassName="w-44 flex-shrink-0"
+          required
+          disabled={disabled}
+        />
+      </div>
 
       <div>
         <div className="flex gap-2">
@@ -81,15 +115,19 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
             className={aiFilledFields.has('amount') ? 'ai-highlight' : ''}
             disabled={disabled}
           />
-          <div className="flex w-28 flex-col justify-end">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <div className="w-28">
+            <label
+              htmlFor="currency"
+              className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Currency
             </label>
             <select
+              id="currency"
               value={currency}
               onChange={(e) => onCurrencyChange(e.target.value)}
               disabled={disabled}
-              className={`h-full w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 ${aiFilledFields.has('amount') ? 'ai-highlight' : ''}`}
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100"
             >
               {CURRENCIES.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -99,27 +137,17 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
             </select>
           </div>
         </div>
-        {/* Container to hold conversion status, preventing layout shift */}
-        <div className="mt-1 flex h-8 items-center">
-          {isConverting ? (
-            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-              <Spinner size="w-4 h-4" />
-              <span>Converting...</span>
-            </div>
-          ) : conversionRate != null &&
-            masterCurrency &&
-            currency !== masterCurrency ? (
-            <div className="w-full rounded-md bg-gray-100 px-3 py-1.5 text-xs text-gray-600 dark:bg-gray-700/50 dark:text-gray-400">
-              1 {currency} = {conversionRate.toFixed(4)} {masterCurrency}.
-              Total:
-              <span className="font-semibold">
-                {' '}
-                {(convertedAmount ?? amount * conversionRate).toFixed(2)}{' '}
-                {masterCurrency}
-              </span>
-            </div>
-          ) : null}
-        </div>
+        {isConverting && (
+          <p className="mt-1 animate-pulse text-xs text-gray-500">
+            Converting...
+          </p>
+        )}
+        {conversionRate && masterCurrency && (
+          <p className="mt-1 text-xs text-gray-500">
+            ~{convertedAmount?.toFixed(2)} {masterCurrency} (1 {currency} ={' '}
+            {conversionRate.toFixed(4)} {masterCurrency})
+          </p>
+        )}
       </div>
     </div>
   );

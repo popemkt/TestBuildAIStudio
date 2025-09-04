@@ -25,6 +25,7 @@ import {
   Edit3,
   PenTool,
   UserPlus,
+  MapPin,
 } from 'lucide-react';
 
 export const ICONS = {
@@ -54,4 +55,5 @@ export const ICONS = {
   EDIT: Edit3,
   PEN: PenTool,
   INVITE: UserPlus,
+  LOCATION: MapPin,
 };

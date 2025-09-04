@@ -41,6 +41,7 @@ export interface Expense {
   tags: string[];
   attachments?: string[];
   transactionType: TransactionType;
+  location?: string;
 }
 
 export interface Group {

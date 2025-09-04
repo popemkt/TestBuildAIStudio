@@ -1,22 +1,17 @@
+import * as express from 'express';
 import { handleParseExpense } from '../../../services/aiParsingService';
 import { logger } from '../../../services/loggerService';
 
-export default async (req: Request) => {
+export default async (req: express.Request, res: express.Response) => {
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    const body = await req.json();
+    const body = req.body;
     const parsedJson = await handleParseExpense(body);
 
-    return new Response(JSON.stringify(parsedJson), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(200).json(parsedJson);
   } catch (error: any) {
     logger.error("Error in serverless function 'parse-expense':", error);
 
@@ -25,14 +20,8 @@ export default async (req: Request) => {
       : 'An error occurred while processing your request.';
     const statusCode = error.message.includes('API_KEY') ? 500 : 500;
 
-    return new Response(
-      JSON.stringify({
-        error: errorMessage,
-      }),
-      {
-        status: statusCode,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return res.status(statusCode).json({
+      error: errorMessage,
+    });
   }
 };

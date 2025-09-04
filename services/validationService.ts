@@ -155,6 +155,10 @@ export const expenseFormSchema = z
       .array(z.string())
       .min(1, 'At least one participant is required'),
     tags: tagsSchema,
+    location: z
+      .string()
+      .max(150, "Location can't exceed 150 characters")
+      .optional(),
   })
   .refine(
     (data) => {
