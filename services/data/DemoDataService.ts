@@ -112,6 +112,7 @@ interface DemoStorage {
   users: User[];
   groups: Group[];
   expenses: Expense[];
+  invites: { id: string; groupId: string }[];
 }
 
 export class DemoDataService implements IDataService {
@@ -128,7 +129,14 @@ export class DemoDataService implements IDataService {
   private loadState(): DemoStorage {
     try {
       const savedData = localStorage.getItem(this.DEMO_STORAGE_KEY);
-      if (savedData) return JSON.parse(savedData);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        // Ensure invites array exists for backward compatibility
+        if (!parsed.invites) {
+          parsed.invites = [];
+        }
+        return parsed;
+      }
     } catch (e) {
       console.error('Failed to parse demo data', e);
     }
@@ -136,6 +144,7 @@ export class DemoDataService implements IDataService {
       users: allDemoUsers,
       groups: initialDemoGroups,
       expenses: initialDemoExpenses,
+      invites: [],
     };
   }
 
@@ -164,7 +173,7 @@ export class DemoDataService implements IDataService {
 
   async signOut(): Promise<void> {
     localStorage.removeItem(this.DEMO_STORAGE_KEY);
-    this.state = { users: [], groups: [], expenses: [] };
+    this.state = { users: [], groups: [], expenses: [], invites: [] };
     if (this.onAuthChangeCallback) this.onAuthChangeCallback(null);
     return Promise.resolve();
   }
@@ -266,6 +275,32 @@ export class DemoDataService implements IDataService {
   async deleteExpense(expenseId: string): Promise<void> {
     this.state.expenses = this.state.expenses.filter((e) => e.id !== expenseId);
     this.saveState();
+    return Promise.resolve();
+  }
+
+  async createGroupInvite(groupId: string): Promise<string> {
+    const newInvite = {
+      id: `demo_invite_${Date.now()}`,
+      groupId,
+    };
+    this.state.invites.push(newInvite);
+    this.saveState();
+    return Promise.resolve(newInvite.id);
+  }
+
+  async getInvite(
+    inviteCode: string
+  ): Promise<{ groupId: string } | null> {
+    const invite = this.state.invites.find((i) => i.id === inviteCode);
+    return Promise.resolve(invite ? { groupId: invite.groupId } : null);
+  }
+
+  async addUserToGroup(groupId: string, userId: string): Promise<void> {
+    const group = this.state.groups.find((g) => g.id === groupId);
+    if (group && !group.members.includes(userId)) {
+      group.members.push(userId);
+      this.saveState();
+    }
     return Promise.resolve();
   }
 }

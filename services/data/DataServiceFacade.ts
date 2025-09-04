@@ -141,6 +141,20 @@ class DataServiceFacade implements IDataService {
   deleteExpense = (expenseId: string): Promise<void> => {
     return this.getService().deleteExpense(expenseId);
   };
+
+  createGroupInvite = (groupId: string): Promise<string> => {
+    return this.getService().createGroupInvite(groupId);
+  };
+
+  getInvite = (
+    inviteCode: string
+  ): Promise<{ groupId: string } | null> => {
+    return this.getService().getInvite(inviteCode);
+  };
+
+  addUserToGroup = (groupId: string, userId: string): Promise<void> => {
+    return this.getService().addUserToGroup(groupId, userId);
+  };
 }
 
 export const dataService = DataServiceFacade.getInstance();

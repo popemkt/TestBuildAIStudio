@@ -20,6 +20,9 @@ import {
   where,
   writeBatch,
   Timestamp,
+  updateDoc,
+  arrayUnion,
+  serverTimestamp,
 } from 'firebase/firestore';
 import {
   ref,
@@ -246,6 +249,33 @@ export class FirebaseDataService implements IDataService {
       );
     }
     await deleteDoc(doc(db, 'expenses', expenseId));
+  }
+  
+  // --- Invite Operations ---
+  async createGroupInvite(groupId: string): Promise<string> {
+    const docRef = await addDoc(collection(db, 'invites'), {
+      groupId,
+      createdAt: serverTimestamp(),
+    });
+    return docRef.id;
+  }
+
+  async getInvite(
+    inviteCode: string
+  ): Promise<{ groupId: string } | null> {
+    const docRef = doc(db, 'invites', inviteCode);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data() as { groupId: string };
+    }
+    return null;
+  }
+  
+  async addUserToGroup(groupId: string, userId: string): Promise<void> {
+    const groupRef = doc(db, 'groups', groupId);
+    await updateDoc(groupRef, {
+      members: arrayUnion(userId),
+    });
   }
 
   // --- Storage Helpers ---

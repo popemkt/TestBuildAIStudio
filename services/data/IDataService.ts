@@ -40,4 +40,9 @@ export interface IDataService {
     removedAttachments: string[]
   ): Promise<Expense>;
   deleteExpense(expenseId: string): Promise<void>;
+
+  // --- Group Invite Operations ---
+  createGroupInvite(groupId: string): Promise<string>; // returns invite code
+  getInvite(inviteCode: string): Promise<{ groupId: string } | null>;
+  addUserToGroup(groupId: string, userId: string): Promise<void>;
 }

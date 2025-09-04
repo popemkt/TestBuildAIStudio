@@ -99,6 +99,7 @@ const GroupDetailScreen: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<Tab>('expenses');
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] =
     useState(false);
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
@@ -112,6 +113,7 @@ const GroupDetailScreen: React.FC = () => {
   const [isControlsOpen, setIsControlsOpen] = useState(false);
   const [isMemberListScrollable, setIsMemberListScrollable] = useState(false);
   const memberListRef = useRef<HTMLDivElement>(null);
+  const [inviteLink, setInviteLink] = useState('');
 
   const [editedGroupName, setEditedGroupName] = useState('');
   const [editedMemberIds, setEditedMemberIds] = useState<string[]>([]);
@@ -151,6 +153,16 @@ const GroupDetailScreen: React.FC = () => {
     () => new Map<string, User>(groupRelatedUsers.map((u) => [u.id, u])),
     [groupRelatedUsers]
   );
+
+  const createInviteMutation = useMutation({
+    mutationFn: (groupId: string) => dataService.createGroupInvite(groupId),
+    onSuccess: (inviteCode) => {
+      const link = `${window.location.origin}${window.location.pathname}#/join/${inviteCode}`;
+      setInviteLink(link);
+      setIsInviteModalOpen(true);
+    },
+    onError: (error) => toast.error(`Failed to create invite: ${error.message}`),
+  });
 
   const editGroupMutation = useMutation({
     mutationFn: (updatedGroup: Group) => dataService.editGroup(updatedGroup),
@@ -300,6 +312,18 @@ const GroupDetailScreen: React.FC = () => {
 
   const openManageModal = () => {
     if (group) setIsManageModalOpen(true);
+  };
+  
+  const handleCreateInvite = () => {
+    if (groupId) {
+      createInviteMutation.mutate(groupId);
+    }
+  };
+
+  const handleCopyInviteLink = () => {
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      toast.success('Invite link copied!');
+    });
   };
 
   const handleMemberToggle = (userId: string) => {
@@ -824,9 +848,20 @@ const GroupDetailScreen: React.FC = () => {
             onChange={(e) => setEditedGroupName(e.target.value)}
           />
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Members
-            </label>
+            <div className="mb-2 flex items-center justify-between">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Members
+              </label>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleCreateInvite}
+                isLoading={createInviteMutation.isPending}
+              >
+                <ICONS.INVITE className="h-4 w-4" />
+                Invite
+              </Button>
+            </div>
             <div className="relative">
               <div
                 ref={memberListRef}
@@ -886,6 +921,26 @@ const GroupDetailScreen: React.FC = () => {
               Save Changes
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        title="Invite Link"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Share this link with anyone you want to invite to the group.
+          </p>
+          <Input
+            value={inviteLink}
+            readOnly
+            className="bg-gray-100 dark:bg-gray-700"
+          />
+          <Button onClick={handleCopyInviteLink} className="w-full">
+            Copy Link
+          </Button>
         </div>
       </Modal>
 

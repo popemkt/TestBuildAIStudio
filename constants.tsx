@@ -24,6 +24,7 @@ import {
   MessageCircle,
   Edit3,
   PenTool,
+  UserPlus,
 } from 'lucide-react';
 
 export const ICONS = {
@@ -52,4 +53,5 @@ export const ICONS = {
   MESSAGE_CIRCLE: MessageCircle,
   EDIT: Edit3,
   PEN: PenTool,
+  INVITE: UserPlus,
 };

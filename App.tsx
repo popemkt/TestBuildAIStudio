@@ -18,6 +18,7 @@ import ProfileScreen from './screens/ProfileScreen';
 import BottomNav from './components/common/BottomNav';
 import SidebarNav from './components/common/SidebarNav';
 import Spinner from './components/common/Spinner';
+import JoinGroupScreen from './screens/JoinGroupScreen';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, setCurrentUser } = useAppStore((state) => ({
@@ -53,6 +54,7 @@ const AppContent: React.FC = () => {
         <div className="flex flex-1 flex-col">
           <Routes>
             <Route path="/login" element={<LoginScreen />} />
+            <Route path="/join/:inviteCode" element={<LoginScreen />} />
             <Route
               path="*"
               element={
@@ -83,6 +85,10 @@ const AppContent: React.FC = () => {
                     element={<AddExpenseScreen />}
                   />
                   <Route path="/profile" element={<ProfileScreen />} />
+                  <Route
+                    path="/join/:inviteCode"
+                    element={<JoinGroupScreen />}
+                  />
                   <Route path="*" element={<Navigate to="/groups" />} />
                 </Routes>
               </main>
